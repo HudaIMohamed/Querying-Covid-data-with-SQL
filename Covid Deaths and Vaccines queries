@@ -1,0 +1,49 @@
+-- Exploring covid cases and deaths by location
+SELECT location, date, total_cases, new_cases, total_deaths, population
+FROM Covid..CovidDeaths
+ORDER BY 1, 2
+
+
+-- Looking at total cases VS total deaths
+-- Liklihood of dying with Covid in Egypt
+SELECT location, date, total_cases, total_deaths, (total_cases/total_deaths)*100 AS DeathPercent
+FROM Covid..CovidDeaths
+WHERE total_deaths IS NOT NULL
+AND location = 'Egypt'
+ORDER BY 1, 2
+
+-- Daily Covid percentage for countries
+SELECT location, date, population, (total_cases/population)*100 AS CovidPercent
+FROM Covid..CovidDeaths
+-- WHERE location = 'Egypt'
+ORDER BY 1, 2
+
+-- Highest to least infection rate compared to population
+SELECT location, population, MAX(total_cases) InfectionCount, MAX(total_cases/population) InfectionRate
+FROM Covid.dbo.CovidDeaths
+GROUP BY location, population
+ORDER BY 4 DESC
+
+-- Death/infected rate compared to infection/population rate by country
+SELECT location, population, MAX(total_cases) CovidCount, MAX(CAST(total_deaths AS int)) Deaths, MAX(total_cases/population) InfectionRate, MAX(cast(total_deaths as int))/MAX(total_cases) DeathRate
+FROM Covid.dbo.CovidDeaths
+WHERE continent IS NOT NULL
+GROUP BY location, population
+ORDER BY DeathRate DESC
+
+-- Death rate compared to infection rate by continent
+SELECT continent, MAX(total_cases) CovidCount, MAX(CAST(total_deaths AS int)) Deaths, MAX(total_cases/population) InfectionRate, MAX(cast(total_deaths as int))/MAX(total_cases) DeathRate
+FROM Covid.dbo.CovidDeaths
+WHERE continent IS NOT NULL
+GROUP BY continent
+ORDER BY DeathRate DESC
+
+-- GLOBAL NUMBERS
+
+-- Daily numbers of cases, deaths and rate of deaths among everyone who got covid
+SELECT date, SUM(new_cases) CasesPerDay, SUM(CAST(new_deaths AS int)) DeathsPerDay, SUM(CAST(new_deaths AS int))/SUM(new_cases) DeathRate
+FROM Covid.dbo.CovidDeaths
+WHERE new_cases IS NOT NULL
+AND new_cases != 0
+GROUP BY date
+ORDER BY date
